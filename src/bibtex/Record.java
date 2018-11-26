@@ -4,11 +4,11 @@ import java.util.HashSet;
 
 public class Record {
 
-    public final Category category;
+    public final CategoryType categoryType;
     public HashSet<Field> fields;
 
-    public Record(Category category) {
-        this.category = category;
+    public Record(CategoryType categoryType) {
+        this.categoryType = categoryType;
     }
 
     public void addField(Field field) {
