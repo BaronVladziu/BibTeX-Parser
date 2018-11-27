@@ -14,4 +14,8 @@ public class Field {
         return this.name.equals(field.name);
     }
 
+    public String toString() {
+        return "(" + name + " = " + value + ")";
+    }
+
 }
