@@ -14,6 +14,8 @@ import java.util.Scanner;
 
 public class Parser {
 
+    private static final MandatoryNOptionalChecker checker = new MandatoryNOptionalChecker();
+
     public BibBase parse(String bibfilePath) {
         final ArrayList<String> words = this.loadTextFile(bibfilePath);
         BibBase bibBase = new BibBase();
@@ -32,9 +34,8 @@ public class Parser {
                         break;
                     }
                     default: {
-                        System.out.println(actWord);
-                        System.out.println(nextWord);
-                        bibBase.addRecord(this.parseRecord(nextWord, itr, words));
+                        Record record = this.parseRecord(nextWord, itr, words);
+                        if (this.isRecordCorrect(record)) bibBase.addRecord(record);
                         break;
                     }
                 }
@@ -54,11 +55,12 @@ public class Parser {
                 word = word.replace("@", " @ ");
                 word = word.replace("{", " { ");
                 word = word.replace("}", " } ");
-                word = word.replace("[", "");
-                word = word.replace("]", "");
-                word = word.replace("\"", " \" ");
-                word = word.replace("\\", " \\");
-                word = word.replace(",", "");
+                word = word.replace("\n", "");
+//                word = word.replace("[", "");
+//                word = word.replace("]", "");
+//                word = word.replace("\"", " \" ");
+//                word = word.replace("\\", " \\");
+                word = word.replace(",", " , ");
                 String[] splitedWord = word.split(" ");
                 for (String w : splitedWord) {
                     if (!w.equals("") && !w.equals("\n")) {
@@ -93,7 +95,6 @@ public class Parser {
                 case "}": {
                     bracketsCount--;
                     if (bracketsCount == 0) {
-                        System.out.println(actWord);
                         return record;
                     }
                     break;
@@ -101,16 +102,12 @@ public class Parser {
                 default: {
                     String nextWord = itr.next();
                     if (nextWord.equals("=")) {
-                        System.out.println(nextWord);
                         nextWord = this.parseValue(itr, words);
-                        System.out.println("--- ActWord: " + actWord);
-                        System.out.println("--- NextWord: " + nextWord);
                         record.addField(new Field(actWord, nextWord));
                     }
                     itr.previous();
                 }
             }
-            System.out.println(actWord);
         } while (bracketsCount > 0);
         throw new ParseException("Unexpected end of record.");
     }
@@ -119,42 +116,34 @@ public class Parser {
         ListIterator<String> itr = words.listIterator(baseItr.nextIndex());
         StringBuilder stringBuilder = new StringBuilder();
         String actWord = itr.next();
-        if (actWord.equals("{")) {
-            int bracketCounter = 1;
-            while (bracketCounter > 0) {
-                actWord = itr.next();
-                if (actWord.charAt(0) != '\\') {
-                    switch (actWord) {
-                        case "{": {
-                            bracketCounter++;
-                            break;
-                        }
-                        case "}": {
-                            bracketCounter--;
-                            break;
-                        }
-                        default: {
-                            stringBuilder.append(actWord + ' ');
-                        }
-                    }
-                }
-            }
-        } else if (actWord.equals("\"")) {
+        int bracketCounter = 1;
+        if (actWord.equals("{")) bracketCounter++;
+        while (!actWord.equals(",") && bracketCounter > 0) {
+            stringBuilder.append(actWord + ' ');
             actWord = itr.next();
-            while (!actWord.equals("\"")) {
-                if (actWord.charAt(0) != '\\') {
-                    stringBuilder.append(actWord + ' ');
-                }
-                actWord = itr.next();
-            }
-        } else {
-            return actWord;
+            if (actWord.equals("{")) bracketCounter++;
+            else if (actWord.equals("}")) bracketCounter--;
         }
-        String result = stringBuilder.toString();
-        if (result.length() > 0) {
-            return result.substring(0, result.length() - 1);
-        }
+        String result = stringBuilder.toString().trim();
         return result;
+    }
+
+    private boolean isRecordCorrect(Record record) {
+        for (String[] mandatoryTable : checker.getRequired(record.categoryType)) {
+            if (!isAnyInRecord(mandatoryTable, record)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isAnyInRecord(String[] words, Record record) {
+        for (String s : words) {
+            if (record.hasField(s)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

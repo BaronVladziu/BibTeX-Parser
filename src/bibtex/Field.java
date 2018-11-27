@@ -15,7 +15,7 @@ public class Field {
     }
 
     public String toString() {
-        return "(" + name + " = " + value + ")";
+        return "( " + name + " = " + value + " )";
     }
 
 }

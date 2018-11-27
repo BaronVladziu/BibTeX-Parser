@@ -8,6 +8,6 @@ class ParserTest {
 
     @Test
     void parse() {
-        parser.parse("resources/bibtexExample1.bib");
+        System.out.println(parser.parse("resources/bibtexExample1.bib"));
     }
 }

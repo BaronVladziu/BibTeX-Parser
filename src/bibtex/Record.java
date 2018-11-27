@@ -15,6 +15,10 @@ public class Record {
         this.fields.add(field);
     }
 
+    public boolean hasField(String fieldName) {
+        return this.fields.contains(new Field(fieldName, null));
+    }
+
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(this.categoryType.toString() + '\n');
