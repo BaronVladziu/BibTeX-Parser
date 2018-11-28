@@ -1,5 +1,6 @@
 package bibtex;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class BibBase {
@@ -12,12 +13,17 @@ public class BibBase {
 
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("{\n\n");
+        stringBuilder.append("\nBibTeX BIBLIOGRAPHY: {\n\n");
         for (Record r : this.records) {
             stringBuilder.append(r.toString() + '\n');
         }
-        stringBuilder.append("}");
+        stringBuilder.append("}\n");
         return stringBuilder.toString();
+    }
+
+    public boolean equals(Object other) {
+        BibBase otherBase = (BibBase) other;
+        return Arrays.deepEquals(this.records.toArray(), otherBase.records.toArray());
     }
 
 }
