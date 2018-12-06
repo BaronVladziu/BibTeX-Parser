@@ -1,6 +1,11 @@
 package bibtex;
 
-import java.util.HashSet;
+import parser.MandatoryNOptionalChecker;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Record {
 
@@ -8,19 +13,31 @@ public class Record {
 
     public final CategoryType categoryType;
     public final String baseKey;
-    private HashSet<Field> fields = new HashSet<>();
+    private HashMap<String, Field> fields = new HashMap<>();
 
     public Record(CategoryType categoryType, String baseKey) {
         this.categoryType = categoryType;
-        this.baseKey = baseKey;
+        this.baseKey = baseKey.toLowerCase();
     }
 
     public void addField(final Field field) {
-        this.fields.add(field);
+        this.fields.put(field.name, field);
     }
 
     public boolean hasField(String fieldName) {
-        return this.fields.contains(new Field(fieldName, ""));
+        return this.fields.containsKey(fieldName);
+    }
+
+    public Field getField(String fieldName) {
+        return this.fields.get(fieldName);
+    }
+
+    public void removeField(String fieldName) {
+        this.fields.remove(fieldName);
+    }
+
+    public Collection<Field> getFields() {
+        return this.fields.values();
     }
 
     public String toString() {
@@ -28,10 +45,16 @@ public class Record {
         stringBuilder.append(this.createHorizontalLine(LINE_LENGTH, '=') + '\n');
         String line = "| " + this.categoryType.toString() + " (" + baseKey + ")";
         stringBuilder.append(line + this.createHorizontalLine(LINE_LENGTH - line.length() - 1, ' ') + "|\n");
-        for (Field f : this.fields) {
+        for (Field f : this.fields.values()) {
             stringBuilder.append(this.createHorizontalLine(LINE_LENGTH, '-') + '\n');
-            line = "| " + f.toString();
-            stringBuilder.append(line + this.createHorizontalLine(LINE_LENGTH - line.length() - 1, ' ') + "|\n");
+            String[] fieldStrings = f.toStrings();
+            line = "| " + fieldStrings[0] + " = ";
+            String line2 = fieldStrings[1];
+            stringBuilder.append(line + line2 + this.createHorizontalLine(LINE_LENGTH - line.length() - line2.length() - 1, ' ') + "|\n");
+            for (int i = 2; i < fieldStrings.length; i++) {
+                line2 = "| " + this.createHorizontalLine(line.length() - 2, ' ') + fieldStrings[i];
+                stringBuilder.append(line2 + this.createHorizontalLine(LINE_LENGTH - line2.length() - 1, ' ') + "|\n");
+            }
         }
         stringBuilder.append(this.createHorizontalLine(LINE_LENGTH, '=') + '\n');
         return stringBuilder.toString();
@@ -47,25 +70,25 @@ public class Record {
 
     public boolean equals(Object other) {
         Record otherRecord = (Record) other;
-        if (this.fields.size() != otherRecord.fields.size()) {
-            return false;
-        }
-        Field[] arr1 = new Field[this.fields.size()];
-        Object[] oarr1 = this.fields.toArray();
-        for (int i = 0; i < arr1.length; i++) {
-            arr1[i] = (Field) oarr1[i];
-        }
-        Field[] arr2 = new Field[otherRecord.fields.size()];
-        Object[] oarr2 = otherRecord.fields.toArray();
-        for (int i = 0; i < arr1.length; i++) {
-            arr2[i] = (Field) oarr2[i];
-        }
-        for (int i = 0; i < arr1.length; i++) {
-            if (!arr1[i].equals(arr2[i])) {
-                return false;
+        return (this.categoryType == otherRecord.categoryType &&
+                this.baseKey.equals(otherRecord.baseKey) &&
+                Arrays.deepEquals(this.fields.values().toArray(), otherRecord.fields.values().toArray()));
+    }
+
+    public int hashCode() {
+        return baseKey.hashCode();
+    }
+
+    void removeIncorrectFields(MandatoryNOptionalChecker checker) {
+        HashMap<String, Field> newFields = new HashMap<>();
+        for (Map.Entry<String, Field> fieldEntry : this.fields.entrySet()) {
+            if (checker.isAllowed(fieldEntry.getKey(), this.categoryType)) {
+                newFields.put(fieldEntry.getKey(), fieldEntry.getValue());
+            } else {
+                System.out.println("Ignoring field: " + fieldEntry.getKey());
             }
         }
-        return true;
+        this.fields = newFields;
     }
 
 }

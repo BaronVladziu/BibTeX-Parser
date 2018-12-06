@@ -16,7 +16,7 @@ public class Parser {
 
     public BibBase parse(String bibfile) {
         ArrayList<String> words = new ArrayList<String>();
-        words = this.prepareForParsing(words, bibfile);
+        this.prepareForParsing(words, bibfile);
         return this.parse(words);
     }
 
@@ -29,7 +29,6 @@ public class Parser {
         this.bibStrings.clear();
         BibBase bibBase = new BibBase();
         //Parse words
-        int bracketsCount = 0;
         ListIterator<String> itr = words.listIterator();
         while (itr.hasNext()) {
             String actWord = itr.next();
@@ -50,29 +49,24 @@ public class Parser {
                     }
                     default: {
                         Record record = this.parseRecord(nextWord, baseKey, itr, words);
-                        try {
-                            if (this.isRecordCorrect(record)) {
-                                bibBase.addRecord(record);
-                            }
-                        } catch (MissingFieldException ex) {
-                            System.out.println(ex.getMessage());
-                        }
+                        bibBase.addRecord(record);
                         break;
                     }
                 }
             }
         }
+        bibBase = this.cleanBibBase(bibBase);
         return bibBase;
     }
 
     private ArrayList<String> loadTextFile(String filePath) {
-        ArrayList<String> words = new ArrayList<String>();
+        ArrayList<String> words = new ArrayList<>();
         try {
             //Create word array
             Scanner textfile = new Scanner(new File(filePath));
             while (textfile.hasNext()) {
                 String word = textfile.next();
-                words = this.prepareForParsing(words, word);
+                this.prepareForParsing(words, word);
             }
             textfile.close();
         } catch (IOException ex) {
@@ -85,7 +79,7 @@ public class Parser {
         return words;
     }
 
-    private ArrayList<String> prepareForParsing(ArrayList<String> array, String word) {
+    private void prepareForParsing(ArrayList<String> array, String word) {
         word = word.replace("@", " @ ");
         word = word.replace("{", " { ");
         word = word.replace("}", " } ");
@@ -100,7 +94,6 @@ public class Parser {
                 array.add(w);
             }
         }
-        return array;
     }
 
     private Record parseRecord(String category, String baseKey, ListIterator<String> itr, final ArrayList<String> words) {
@@ -127,7 +120,9 @@ public class Parser {
                     String nextWord = itr.next();
                     if (nextWord.equals("=")) {
                         nextWord = this.parseValue(itr, words);
-                        if (!nextWord.equals("")) record.addField(new Field(actWord, nextWord));
+                        if (!nextWord.equals("")) {
+                            record.addField(new Field(actWord, nextWord));
+                        }
                     }
                     itr.previous();
                 }
@@ -149,9 +144,11 @@ public class Parser {
                 isBetweenQMs = !isBetweenQMs;
             } else {
                 if (!isBetweenQMs && this.bibStrings.containsKey(actWord)) {
-                    stringBuilder.append(this.bibStrings.get(actWord) + ' ');
+                    stringBuilder.append(this.bibStrings.get(actWord));
+                    stringBuilder.append(' ');
                 } else {
-                    stringBuilder.append(actWord + ' ');
+                    stringBuilder.append(actWord);
+                    stringBuilder.append(' ');
                 }
             }
             actWord = itr.next();
@@ -159,8 +156,39 @@ public class Parser {
             else if (actWord.equals("}")) bracketCounter--;
         }
         //Cut spaces
-        String result = stringBuilder.toString().trim();
-        return result;
+        return stringBuilder.toString().trim();
+    }
+
+    private Field parseBibString(final ListIterator<String> baseItr, final ArrayList<String> words) {
+        //baseItr should be on "STRING" declaration
+        ListIterator<String> itr = words.listIterator(baseItr.nextIndex());
+        itr.next();
+        String name = itr.next();
+        itr.next();
+        return new Field(name, this.parseValue(itr, words));
+    }
+
+    private BibBase cleanBibBase(BibBase bibBase) {
+        //Apply crossrefs
+        try {
+            bibBase.applyCrossrefs();
+        } catch (NullCrossrefException ex) {
+            System.out.println(ex.getMessage());
+        }
+        //Remove incorrect records
+        BibBase newBibBase = new BibBase();
+        for (Record record : bibBase.getRecords()) {
+            try {
+                if (this.isRecordCorrect(record)) {
+                    newBibBase.addRecord(record);
+                }
+            } catch (MissingFieldException ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
+        //Remove incorrect fields
+        newBibBase.removeIncorrectFields(checker);
+        return newBibBase;
     }
 
     private boolean isRecordCorrect(Record record) throws MissingFieldException {
@@ -168,7 +196,8 @@ public class Parser {
             if (!isAnyInRecord(mandatoryTable, record)) {
                 StringBuilder message = new StringBuilder();
                 for (String s : mandatoryTable) {
-                    message.append(s + " or ");
+                    message.append(s);
+                    message.append(" or ");
                 }
                 message.delete(message.length() - 4, message.length() - 1);
                 throw new MissingFieldException("Ignoring record: {\n" + record + "}\nMissing " + message + "\n");
@@ -184,15 +213,6 @@ public class Parser {
             }
         }
         return false;
-    }
-
-    private Field parseBibString(final ListIterator<String> baseItr, final ArrayList<String> words) {
-        //baseItr should be on "STRING" declaration
-        ListIterator<String> itr = words.listIterator(baseItr.nextIndex());
-        itr.next();
-        String name = itr.next();
-        itr.next();
-        return new Field(name, this.parseValue(itr, words));
     }
 
 }

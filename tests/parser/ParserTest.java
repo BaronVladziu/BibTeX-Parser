@@ -215,6 +215,16 @@ class ParserTest {
         record.addField(new Field("year", " { \\noopsort { 1973a } } { \\switchargs { --90 } { 1968 } }"));
         record.addField(new Field("note", "Seven volumes planned (this is a cross-referenced set of BOOKs)"));
         bibBase.addRecord(record);
+        record = new Record(CategoryType.BOOK, "book-crossref");
+        record.addField(new Field("title", "Seminumerical Algorithms"));
+        record.addField(new Field("volume", "2"));
+        record.addField(new Field("series", "The Art of Computer Programming"));
+        record.addField(new Field("edition", "Second"));
+        record.addField(new Field("year", "{ \\noopsort { 1973c } } 1981"));
+        record.addField(new Field("note", "This is a cross-referencing BOOK entry"));
+        record.addField(new Field("author", "Donald E. Knuth"));
+        record.addField(new Field("publisher", "Addison-Wesley"));
+        bibBase.addRecord(record);
         Assertions.assertEquals(bibBase,
                 parser.parse("@BOOK{book-crossref,\n" +
                         "   crossref = \"whole-set\",\n" +
@@ -333,10 +343,24 @@ class ParserTest {
     @Test
     public void parse13() {
         BibBase bibBase = new BibBase();
-        Record record = new Record(CategoryType.BOOK, "whole-collection");
+        Record record = new Record(CategoryType.INCOLLECTION, "incollection-crossref");
+        record.addField(new Field("author", "Daniel D. Lincoll"));
+        record.addField(new Field("title", "Semigroups of Recurrences"));
+        record.addField(new Field("pages", "179--183"));
+        record.addField(new Field("note", "This is a cross-referencing INCOLLECTION entry"));
+        record.addField(new Field("editor", "David J. Lipcoll and D. H. Lawrie and A. H. Sameh"));
+        record.addField(new Field("booktitle", "High Speed Computer and Algorithm Organization"));
+        record.addField(new Field("number", "23"));
+        record.addField(new Field("series", "Fast Computers"));
+        record.addField(new Field("publisher", "Academic Press"));
+        record.addField(new Field("address", "New York"));
+        record.addField(new Field("edition", "Third"));
+        record.addField(new Field("month", "sep"));
+        record.addField(new Field("year", "1977"));
+        bibBase.addRecord(record);
+        record = new Record(CategoryType.BOOK, "whole-collection");
         record.addField(new Field("editor", "David J. Lipcoll and D. H. Lawrie and A. H. Sameh"));
         record.addField(new Field("title", "High Speed Computer and Algorithm Organization"));
-        record.addField(new Field("booktitle", "High Speed Computer and Algorithm Organization"));
         record.addField(new Field("number", "23"));
         record.addField(new Field("series", "Fast Computers"));
         record.addField(new Field("publisher", "Academic Press"));
@@ -385,7 +409,7 @@ class ParserTest {
     @Test
     public void parse15() {
         BibBase bibBase = new BibBase();
-        Record record = new Record(CategoryType.MANUAL, "manual-fill");
+        Record record = new Record(CategoryType.MANUAL, "manual-full");
         record.addField(new Field("author", "Larry Manmaker"));
         record.addField(new Field("title", "The Definitive Computer Manual"));
         record.addField(new Field("organization", "Chips-R-Us"));
@@ -512,6 +536,17 @@ class ParserTest {
         record.addField(new Field("title", "Proc. Fifteenth Annual Symposium on the Theory of Computing"));
         record.addField(new Field("year", "1983"));
         bibBase.addRecord(record);
+        record = new Record(CategoryType.INPROCEEDINGS, "inproceedings-crossref");
+        record.addField(new Field("author", "Alfred V. Oaho and Jeffrey D. Ullman and Mihalis Yannakakis"));
+        record.addField(new Field("title", "On Notions of Information Transfer in { VLSI } Circuits"));
+        record.addField(new Field("pages", "133--139"));
+        record.addField(new Field("note", "This is a cross-referencing INPROCEEDINGS entry"));
+        record.addField(new Field("key", "OX { \\singleletter { stoc } }"));
+        record.addField(new Field("organization", "The OX Association for Computing Machinery"));
+        record.addField(new Field("address", "Boston"));
+        record.addField(new Field("year", "1983"));
+        record.addField(new Field("booktitle", "Proc. Fifteenth Annual Symposium on the Theory of Computing"));
+        bibBase.addRecord(record);
         record = new Record(CategoryType.PROCEEDINGS, "proceedings-full");
         record.addField(new Field("editor", "Wizard V. Oz and Mihalis Yannakakis"));
         record.addField(new Field("title", "Proc. Fifteenth Annual Symposium on the Theory of Computing"));
@@ -530,7 +565,6 @@ class ParserTest {
         record.addField(new Field("title", "Proc. Fifteenth Annual Symposium on the Theory of Computing"));
         record.addField(new Field("address", "Boston"));
         record.addField(new Field("year", "1983"));
-        record.addField(new Field("booktitle", "Proc. Fifteenth Annual ACM Symposium on the Theory of Computing"));
         record.addField(new Field("note", "This is a cross-referenced PROCEEDINGS"));
         bibBase.addRecord(record);
         Assertions.assertEquals(bibBase,
@@ -621,7 +655,7 @@ class ParserTest {
     @Test
     public void parse22() {
         BibBase bibBase = new BibBase();
-        Record record = new Record(CategoryType.PHDTHESIS, "phdthesis-minimal");
+        Record record = new Record(CategoryType.PHDTHESIS, "phdthesis-full");
         record.addField(new Field("author", "F. Phidias Phony-Baloney"));
         record.addField(new Field("title", "Fighting Fire with Fire: Festooning { F } rench Phrases"));
         record.addField(new Field("school", "Fanstord University"));
