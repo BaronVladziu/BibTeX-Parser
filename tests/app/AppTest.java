@@ -17,6 +17,11 @@ class AppTest {
     }
 
     @Test
+    void main4() {
+        App.main("resources/bibtexExample1.bib , Yannakakis".split(" "));
+    }
+
+    @Test
     void main3() {
         App.main("resources/bibtexExample1.bib , , MISC | ARTICLE".split(" "));
     }

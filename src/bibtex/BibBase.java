@@ -98,11 +98,14 @@ public class BibBase {
             for (Record record : this.records.values()) {
                 Field field = record.getField("author");
                 if (field != null) {
-                    for (String author : field.value.split("\\|")) {
-                        if (authors.contains(author.trim())) {
-                            result.addRecord(record);
-                            break;
+                    for (String author : field.value.split(" ")) {
+                        for (String searchedAuthor : authors) {
+                            if (searchedAuthor.contains(author.trim())) {
+                                result.addRecord(record);
+                                break;
+                            }
                         }
+
                     }
                 }
             }
